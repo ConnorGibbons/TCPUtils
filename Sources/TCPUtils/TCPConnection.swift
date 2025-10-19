@@ -19,7 +19,7 @@ public final class TCPConnection {
     private let endpoint: NWEndpoint
     private let dedicatedQueue: DispatchQueue
     
-    let connectionName: String
+    public let connectionName: String
     
     var sendHandler: @Sendable (NWError?) -> Void
     var receiveHandler: @Sendable (Data?) -> Void

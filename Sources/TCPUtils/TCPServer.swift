@@ -14,7 +14,7 @@ public enum TCPServerErrors: Error {
 }
 
 public final class TCPServer {
-    let name: String
+    public let name: String
     let port: UInt16
     let listener: NWListener
     let maxConnections: UInt8
