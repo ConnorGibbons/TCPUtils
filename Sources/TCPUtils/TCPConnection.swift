@@ -7,7 +7,7 @@
 import Foundation
 import Network
 
-enum TCPConnectionErrors: Error {
+public enum TCPConnectionErrors: Error {
     case invalidIP
     case invalidPort
     case connectionNotReady
@@ -32,7 +32,7 @@ public final class TCPConnection {
         return state == .preparing || state == .ready
     }
     
-    init(hostname: String, port: Int, sendHandler: (@Sendable (NWError?) -> Void)? = nil, receiveHandler: (@Sendable (Data) -> Void)? = nil, stateUpdateHandler: (@Sendable (NWConnection.State) -> Void)? = nil) throws {
+    public init(hostname: String, port: Int, sendHandler: (@Sendable (NWError?) -> Void)? = nil, receiveHandler: (@Sendable (Data) -> Void)? = nil, stateUpdateHandler: (@Sendable (NWConnection.State) -> Void)? = nil) throws {
         
         let port = NWEndpoint.Port(rawValue: UInt16(port))
         let host = NWEndpoint.Host(hostname)
@@ -68,7 +68,7 @@ public final class TCPConnection {
         
     }
     
-    init(connection: NWConnection, sendHandler: (@Sendable (NWError?) -> Void)? = nil, receiveHandler: (@Sendable (Data) -> Void)? = nil, stateUpdateHandler: (@Sendable (NWConnection.State) -> Void)? = nil) {
+    public init(connection: NWConnection, sendHandler: (@Sendable (NWError?) -> Void)? = nil, receiveHandler: (@Sendable (Data) -> Void)? = nil, stateUpdateHandler: (@Sendable (NWConnection.State) -> Void)? = nil) {
         self.connection = connection
         self.endpoint = connection.endpoint
         self.dedicatedQueue = DispatchQueue(label: "tcp.\(connection.endpoint)")
@@ -94,7 +94,7 @@ public final class TCPConnection {
         
     }
     
-    func startConnection() {
+    public func startConnection() {
         self.connection.start(queue: self.dedicatedQueue)
         setupReceive()
     }
@@ -115,11 +115,11 @@ public final class TCPConnection {
         })
     }
     
-    func setStateUpdateHandler(_ handler: @escaping @Sendable (NWConnection.State) -> Void) {
+    public func setStateUpdateHandler(_ handler: @escaping @Sendable (NWConnection.State) -> Void) {
         connection.stateUpdateHandler = handler
     }
     
-    func sendData(_ string: String) throws {
+    public func sendData(_ string: String) throws {
         if let data = string.data(using: .utf8) {
             guard state == .ready else { throw TCPConnectionErrors.connectionNotReady }
             connection.send(content: data, completion: .contentProcessed(sendHandler))
@@ -129,7 +129,7 @@ public final class TCPConnection {
         }
     }
     
-    func closeConnection() {
+    public func closeConnection() {
         if state != .cancelled {
             connection.cancel()
         }
@@ -169,7 +169,7 @@ public final class TCPConnection {
         }
     }
     
-    static func getConnectionName(endpoint: NWEndpoint) -> String {
+    public static func getConnectionName(endpoint: NWEndpoint) -> String {
         let name = {
             return switch endpoint {
             case .hostPort(let host, let port):

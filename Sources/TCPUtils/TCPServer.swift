@@ -27,7 +27,7 @@ public final class TCPServer {
     
     let actionOnReceive: (@Sendable (String, Data) -> Void)?
     
-    init(port: UInt16, maxConnections: UInt8 = 10, actionOnReceive: (@Sendable (String, Data) -> Void)? = nil, actionOnStateUpdate: (@Sendable (NWListener.State) -> Void)? = nil, actionOnNewConnection: (@Sendable (TCPConnection) -> Void)? = nil) throws {
+    public init(port: UInt16, maxConnections: UInt8 = 10, actionOnReceive: (@Sendable (String, Data) -> Void)? = nil, actionOnStateUpdate: (@Sendable (NWListener.State) -> Void)? = nil, actionOnNewConnection: (@Sendable (TCPConnection) -> Void)? = nil) throws {
         
         let params = NWParameters.tcp
         let options = params.defaultProtocolStack.transportProtocol as! NWProtocolTCP.Options
@@ -57,7 +57,7 @@ public final class TCPServer {
     
     /// Send a message to every connection in the connections list.
     /// To-do: Change this so that one message erroring out doesn't stop the whole thing.
-    func broadcastMessage(_ message: String) throws {
+    public func broadcastMessage(_ message: String) throws {
         try onQueueSync {
             for connection in connections {
                 try connection.value.sendData(message)
@@ -65,14 +65,14 @@ public final class TCPServer {
         }
     }
     
-    func sendMessage(connection: String, message: String) throws {
+    public func sendMessage(connection: String, message: String) throws {
         try onQueueSync {
             guard let connection = connections[connection] else { throw TCPServerErrors.connectionNonexistent }
             try connection.sendData(message)
         }
     }
     
-    func startServer() {
+    public func startServer() {
         onQueueSync {
             if(listener.state == .setup || listener.state == .cancelled) {
                 listener.start(queue: dedicatedQueue)
@@ -83,14 +83,14 @@ public final class TCPServer {
         }
     }
     
-    func stopListening() {
+    private func stopListening() {
         onQueueSync {
             listener.cancel()
         }
     }
     
     /// Closes connections, then stops listening.
-    func stopServer() {
+    public func stopServer() {
         onQueueSync {
             for connection in connections {
                 connection.value.closeConnection()
@@ -147,13 +147,13 @@ public final class TCPServer {
         }
     }
     
-    func addConnection(connection: TCPConnection) {
+    private func addConnection(connection: TCPConnection) {
         _ = onQueueSync {
             self.connections.updateValue(connection, forKey: connection.connectionName)
         }
     }
     
-    func removeConnection(connectionName: String) {
+    private func removeConnection(connectionName: String) {
         onQueueSync {
             print("\(self.name) removing connection: \(connectionName)")
             self.connections.removeValue(forKey: connectionName)
