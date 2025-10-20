@@ -52,20 +52,37 @@ public final class TCPServer {
         listener.stateUpdateHandler = actionOnStateUpdate ?? getDefaultStateUpdateHandler()
         listener.newConnectionHandler = buildNewConnectionHandler(userDefinedHandler: actionOnNewConnection)
         listener.newConnectionLimit = Int(maxConnections)
-        
     }
     
-    /// Send a message to every connection in the connections list.
-    /// To-do: Change this so that one message erroring out doesn't stop the whole thing.
-    public func broadcastMessage(_ message: String) throws {
-        try onQueueSync {
+    private func sendBroadcastMessage(_ data: Data) {
+        onQueueSync {
             for connection in connections {
-                try connection.value.sendData(message)
+                do {
+                    try connection.value.sendData(data)
+                }
+                catch {
+                    print("Error sending broadcast message to connection (\(connection.value.connectionName): \(error))")
+                }
             }
         }
     }
     
+    /// Send a message to every connection in the connections list.
+    public func broadcastMessage(_ message: String) throws {
+        guard let messageData = message.data(using: .utf8) else { throw TCPConnectionErrors.unsupportedData }
+        sendBroadcastMessage(messageData)
+    }
+    public func broadcastMessage(_ message: Data) throws { sendBroadcastMessage(message) }
+    public func broadcastMessage(_ message: [UInt8]) throws { sendBroadcastMessage(Data(message)) }
+    
     public func sendMessage(connection: String, message: String) throws {
+        try onQueueSync {
+            guard let connection = connections[connection] else { throw TCPServerErrors.connectionNonexistent }
+            try connection.sendData(message)
+        }
+    }
+    
+    public func sendMessage(connection: String, message: Data) throws {
         try onQueueSync {
             guard let connection = connections[connection] else { throw TCPServerErrors.connectionNonexistent }
             try connection.sendData(message)

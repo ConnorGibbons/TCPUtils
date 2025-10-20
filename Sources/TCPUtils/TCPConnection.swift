@@ -128,6 +128,14 @@ public final class TCPConnection {
             throw TCPConnectionErrors.unsupportedData
         }
     }
+    public func sendData(_ data: Data) throws {
+        guard state == .ready else { throw TCPConnectionErrors.connectionNotReady }
+        connection.send(content: data, completion: .contentProcessed(sendHandler))
+    }
+    public func sendData(_ data: [UInt8]) throws {
+        guard state == .ready else { throw TCPConnectionErrors.connectionNotReady }
+        connection.send(content: Data(data), completion: .contentProcessed(sendHandler))
+    }
     
     public func closeConnection() {
         if state != .cancelled {
